@@ -1,6 +1,6 @@
 {
   "name": "모닝레시피클럽 라이브러리",
-  "short_name": "모닝레시피클럽 라이브러리",
+  "short_name": "모닝레시피클럽",
   "description": "BORIH × 아파트멘토 · 에게해를 마주한 3D 서재에서 오뒷세이아 함께 읽기",
   "start_url": "./",
   "scope": "./",
@@ -10,12 +10,12 @@
   "lang": "ko",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icon-192.png?v=3",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "icon-512.png?v=3",
       "sizes": "512x512",
       "type": "image/png"
     }
