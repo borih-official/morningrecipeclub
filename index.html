@@ -1131,9 +1131,9 @@ const paintings=(()=>{const loader=new THREE.TextureLoader(),gold=mat('#a89860',
 // each seat: where you sit (p, the seat height), which way you face (ry, 0 = toward the sea) and where your tray sits (tray, in the seat's own frame)
 const ZIG=false,SEATS=[];
 for(let c=0;c<4;c++){const x=TABLE.x-1.5+c*1.0;
-  SEATS.push({p:new THREE.Vector3(x,.47,TABLE.z+1.0),ry:0,kind:'chair',tray:new THREE.Vector3(0,0,-.62)});          // room side, facing the sea
-  SEATS.push({p:new THREE.Vector3(x,.47,TABLE.z-1.0),ry:Math.PI,kind:'chair',tray:new THREE.Vector3(0,0,-.62)})}    // sea side, facing the room
-DAYBEDS.forEach(d=>SEATS.push({p:d.seat.clone(),ry:0,kind:d.k,tray:new THREE.Vector3(d.k==='kline'?.74:.84,0,-.08)}));
+  SEATS.push({p:new THREE.Vector3(x,.47,TABLE.z+.92),ry:0,kind:'chair',tray:new THREE.Vector3(0,0,-.56)});          // room side, facing the sea
+  SEATS.push({p:new THREE.Vector3(x,.47,TABLE.z-.92),ry:Math.PI,kind:'chair',tray:new THREE.Vector3(0,0,-.56)})}    // sea side, facing the room
+DAYBEDS.forEach(d=>SEATS.push({p:d.seat.clone(),ry:0,kind:d.k,tray:new THREE.Vector3(d.k==='kline'?.68:.8,0,-.08),face:-Math.PI/2}));
 // two places at the bar: stand at the drinks cabinet and brew it yourself (facing the cabinet, the set on its counter)
 // stand close in to the counter (the cabinet's face is at x 7.49) so the hands reach the set without stretching; the set itself stays where it was
 [.35,1.75].forEach(z=>SEATS.push({p:new THREE.Vector3(7.12,0,z),ry:-Math.PI/2,kind:'bar',tray:new THREE.Vector3(0,.69,-.27)}));
@@ -1317,21 +1317,22 @@ const seats=seatPos.map((p,i)=>{
     const fl=S.kind==='sun'?GROUND:0,legM=S.kind==='sun'?mat('#9a6a3e',{roughness:.55}):sideTopM;if(S.kind==='sun')t.material=legM;
     const leg=new THREE.Mesh(new THREE.CylinderGeometry(.022,.028,top-.03-fl,10),legM);leg.position.set(w.x,fl+(top-.03-fl)/2,w.z);scene.add(leg);
     const ft=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.02,18),legM);ft.position.set(w.x,fl+.01,w.z);scene.add(ft)}
-  const tbY=S.tray.y||0,tb=new THREE.Group();tb.position.set(S.tray.x,tbY,S.tray.z);tb.visible=false;tb.scale.setScalar(.01);g.add(tb);   // nothing on the table until a drink is chosen
+  const tbY=S.tray.y||0,tb=new THREE.Group();tb.position.set(S.tray.x,tbY,S.tray.z);if(S.face)tb.rotation.y=S.face;tb.visible=false;tb.scale.setScalar(.01);g.add(tb);   // nothing on the table until a drink is chosen
   const l2=new THREE.Mesh(new THREE.BoxGeometry(S.kind==='chair'?.84:.36,.006,S.kind==='chair'?.42:.36),linen2M);l2.position.set(0,.243,0);tb.add(l2);
   const l1=new THREE.Mesh(new THREE.BoxGeometry(S.kind==='chair'?.66:.3,.006,S.kind==='chair'?.32:.3),linenM);l1.position.set(0,.248,.02);tb.add(l1);
   // left to right: 보듬이, 숙우, 다관 — both handles point to the right hand (on the small side tables the set sits closer together)
-  const sm=S.kind!=='chair',k=sm?.62:1;
+  const sm=S.kind!=='chair',k=sm?.62:.85;
   const cup=vesselize(makeBodeumi(BOWLS[i%BOWLS.length]));cup.position.set(0,.251,.1*k);tb.add(cup);
   const pit=makePitcher();pit.position.set(-.19*k,.251,-.09*k);tb.add(pit);
   const tp=makeTeapot();tp.position.set(.2*k,.251,-.09*k);tb.add(tp);
   const tm=makeTumbler();tm.position.set(.34*k,.251,.11*k);tb.add(tm);
-  const cd=makeCaddy();cd.position.set(0,.251,-.15*k);tb.add(cd);cd.userData.rest=cd.position.clone();
+  const cd=makeCaddy();cd.position.set(0,.251,-.1*k);tb.add(cd);cd.userData.rest=cd.position.clone();
   // the dripper lives inside the 다관's place, the bottle inside the 숙우's
   {const u=tp.userData;u.potParts=[...tp.children];u.dr=makeDripper();tp.add(u.dr.g);u.gp=makeGreekPot();tp.add(u.gp.g);u.tipTea=u.tip;u.gripTea=u.grip;u.lidTea=u.lid;u.knobTea=u.knob}
   {const u=pit.userData;u.potParts=[...pit.children].filter(o=>o!==u.tea);u.bt=makeBottle();pit.add(u.bt.g);u.sv=makeServer();pit.add(u.sv.g);u.tipTea=u.tip;u.gripTea=u.grip}
   const leafBits=new THREE.InstancedMesh(new THREE.BoxGeometry(.02,.005,.011),leafBitM,22);leafBits.visible=false;scene.add(leafBits);
   const beans=new THREE.InstancedMesh(BEAN_GEO,beanM,22);beans.visible=false;scene.add(beans);const bits=leafBits;
+  if(!sm){[cup,pit,tp,tm,cd].forEach(v=>v.position.z+=.07);cd.userData.rest=cd.position.clone()}   // at the long table the set sits toward the near edge of the linen, within reach
   tp.userData.rest=tp.position.clone();pit.userData.rest=pit.position.clone();tm.userData.rest=tm.position.clone();
   const stream=new THREE.Mesh(new THREE.CylinderGeometry(.0045,.006,1,8,1,true),streamM.clone());stream.visible=false;scene.add(stream);
   const steam=[];for(let k=0;k<5;k++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:steamTex,transparent:true,depthWrite:false,opacity:0}));scene.add(s);steam.push({s,ph:Math.random()})}
@@ -1904,7 +1905,7 @@ function setCrown(c,sips){const st=crownStage(sips);
 function setPose(c,p){if(c.pose===p)return;c.pose=p;c.sitBody.visible=p==='sit';c.standBody.visible=p!=='sit'}
 const tmpV=new THREE.Vector3(),tmpD=new THREE.Vector3(),UPV=new THREE.Vector3(0,1,0);
 const pkHand=new THREE.Vector3();
-const ARM_MAX=.44;   // the longest an arm may get (shoulder to hand); a reach beyond it stops at the fingertips instead of stretching the sleeve
+const ARM_MAX=.5;   // the longest an arm may get (shoulder to hand); a reach beyond it stops at the fingertips instead of stretching the sleeve
 function setLimb(a,hand){
   tmpD.copy(hand).sub(a.sh);if(tmpD.length()>ARM_MAX)hand=a.sh.clone().addScaledVector(tmpD.normalize(),ARM_MAX);
   a.p.copy(hand);a.h.position.copy(hand);
@@ -1931,8 +1932,12 @@ function animateChar(c,now,dt,o){
   c.head.rotation.x=(o.cha?.12:0)-L*.12+H*(1-L)*.1+R*.18;
   c.g.updateMatrixWorld(true);
   // a far vessel (the bar, a deep table): lean the body toward it first, so the arm only has to reach the rest of the way
-  {let far=0;[[R,c.reachW,1],[RL,c.reachLW,-1]].forEach(([e,w,s])=>{if(e>0.001&&w){const d=c.torso.worldToLocal(tmpV.copy(w)).distanceTo(new THREE.Vector3(s*.18,-.03,-.03));far=Math.max(far,e*(d-ARM_MAX+.04))}});
-    if(far>0){c.torso.rotation.x-=Math.min(.5,far*1.8);c.g.updateMatrixWorld(true)}}
+  // lean in from the hips (the whole upper body tips forward and down), so the hand reaches the handle instead of the arm stretching
+  {c.torso.position.z=0;c.g.updateMatrixWorld(true);let need=0;
+    [[R,c.reachW,1],[RL,c.reachLW,-1]].forEach(([e,w,s])=>{if(e>0.001&&w){const d=c.torso.worldToLocal(tmpV.copy(w)).distanceTo(new THREE.Vector3(s*.18,-.03,-.03));need=Math.max(need,e*(d-ARM_MAX+.02))}});
+    // leaning a radians from the hips brings the shoulders about .4·a nearer to something low and in front
+    const want=Math.min(.75,Math.max(0,need/.4)),ls=c.leanS||0;c.leanS=ls+(want-ls)*Math.min(1,dt*6);
+    const a=c.leanS;if(a>.002){c.torso.rotation.x-=a;c.torso.position.z=-.46*Math.sin(a);c.torso.position.y-=.46*(1-Math.cos(a));c.g.updateMatrixWorld(true)}}
   const local=c.reachE>0.001&&c.reachW?c.torso.worldToLocal(tmpV.copy(c.reachW)).clone():null;
   const localL=RL>0.001&&c.reachLW?c.torso.worldToLocal(tmpV.copy(c.reachLW)).clone():null;
   c.arms.forEach((a,k)=>{const s=k?1:-1;
@@ -2388,7 +2393,7 @@ const LOUNGE=1.02;   // how far the body leans back on a daybed (radians from up
 const isDaybed=i=>i!=null&&SEATS[i]&&(SEATS[i].kind==='kline'||SEATS[i].kind==='round');
 function placeChar(c,seat,lie,x,z,ry,act){const g=c.g;g.rotation.order='YXZ';if(c.lieLegs)c.lieLegs.visible=false;
   if(isDaybed(seat)&&act){   // brewing or pouring: turn and sit on the side of the daybed, facing the little table
-    const S=SEATS[seat];seatLocal(seat,S.kind==='round'?.42:.3,0,S.tray.z,lieV);g.position.copy(lieV);g.rotation.set(0,seatRy[seat]-Math.PI/2,0);setPose(c,'sit');return}
+    const S=SEATS[seat];seatLocal(seat,S.kind==='round'?.48:.34,0,S.tray.z,lieV);g.position.copy(lieV);g.rotation.set(0,seatRy[seat]-Math.PI/2,0);setPose(c,'sit');return}
   if(isDaybed(seat))setPose(c,lie?'lie':'sit');
   if(seat!=null&&lie&&SEATS[seat].kind==='sun'){const r=seatRy[seat];seatLocal(seat,-1.0,.08,.3,lieV);g.position.copy(lieV);g.rotation.set(Math.PI/2,Math.atan2(Math.cos(r),-Math.sin(r)),0)}   // along the lounger, head on the lowered back rest
   else if(seat!=null&&lie){const rd=SEATS[seat].kind==='round';seatLocal(seat,0,.13,rd?-.32:-.3,lieV);g.position.copy(lieV);g.rotation.set(LOUNGE,seatRy[seat],0);c.lieLegs.rotation.x=-LOUNGE;c.lieLegs.visible=true;return}   // half-reclined: hips on the mattress, back against the pillow, legs out toward the sea
@@ -2891,7 +2896,7 @@ let sbOne=null;function sbClient(){if(sbOne)return sbOne;if(!window.supabase)ret
   try{sbOne=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:10}}})}catch(e){sbOne=null}return sbOne}
 const SB_URL='https://tckghakjphopeqyuncyd.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRja2doYWtqcGhvcGVxeXVuY3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTA3OTUsImV4cCI6MjEwOTE4Njc5NX0.Fb9voUGZXIXlXY2Q8uTDxCNjwJmRpsNr9lh7CxqPSSo',ROOM_NAME='borih-morning-morningrecipe';
 const myKey=(()=>{let k=store.get('id');if(!k){k='v'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);store.set('id',k)}return k+'-'+Math.random().toString(36).slice(2,6)})();
-const APP_V='9';
+const APP_V='10';
 $('ver').textContent='v'+APP_V;
 function connectRoom(){
   // Presence only says who is here (tracked once per connection). Everything else rides broadcasts:
