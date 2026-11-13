@@ -882,12 +882,13 @@ const ROOM_H=3.4;
 // clear glass on the sea side and both ends, no grid: only a slim black channel at the floor and the ceiling
 const paperM=new THREE.MeshStandardMaterial({color:C('#e3eef1'),roughness:.03,metalness:.1,transparent:true,opacity:.06,depthWrite:false,side:THREE.DoubleSide});
 const lattM=new THREE.MeshStandardMaterial({color:C('#161616'),roughness:.45,transparent:true,opacity:1});
-function glassWall(a0,a1,line,alongZ){const g=new THREE.Group();scene.add(g);const L=Math.abs(a1-a0),c=(a0+a1)/2;
-  const pane=new THREE.Mesh(new THREE.PlaneGeometry(L,ROOM_H),paperM);pane.position.y=ROOM_H/2;pane.renderOrder=2;g.add(pane);
-  const base=new THREE.Mesh(new THREE.BoxGeometry(L,.04,.06),lattM);base.position.y=.02;g.add(base);
+function glassWall(a0,a1,line,alongZ,open){const g=new THREE.Group();scene.add(g);const L=Math.abs(a1-a0),c=(a0+a1)/2;
+  if(!open){const pane=new THREE.Mesh(new THREE.PlaneGeometry(L,ROOM_H),paperM);pane.position.y=ROOM_H/2;pane.renderOrder=2;g.add(pane);
+  const base=new THREE.Mesh(new THREE.BoxGeometry(L,.04,.06),lattM);base.position.y=.02;g.add(base)}
   const head=new THREE.Mesh(new THREE.BoxGeometry(L,.05,.06),lattM);head.position.y=ROOM_H-.025;g.add(head);
   if(alongZ){g.rotation.y=Math.PI/2;g.position.set(line,0,c)}else g.position.set(c,0,line)}
-glassWall(-8,8,-4.9,false);glassWall(-4.9,WALL_Z,-7.97,true);glassWall(-4.9,WALL_Z,7.97,true);
+// the sea side and both ends stand open now: walk straight out onto the deck (only the head channel and the corner posts remain)
+glassWall(-8,8,-4.9,false,true);glassWall(-4.9,WALL_Z,-7.97,true,true);glassWall(-4.9,WALL_Z,7.97,true,true);
 [-7.97,7.97].forEach(x=>box(.05,ROOM_H,.05,lattM,x,ROOM_H/2,-4.9));
 // the entrance side is glass too, so the sea shows right through from the yard; only the dark green door frame and a slim header beam
 glassWall(-8,-DOOR_HALF-.05,WALL_Z,false);glassWall(DOOR_HALF+.05,8,WALL_Z,false);
@@ -1963,14 +1964,17 @@ function animateChar(c,now,dt,o){
 }
 
 /* ===== people ===== */
-const me={x:(Math.random()-.5)*.8,z:9.6,lie:false,served:false,read:false,piano:false,pianoHit:0,ry:0,mode:'walk',seat:null,brew:null,sk:0,drink:false,act:null,actAt:0,bowl:BOWLS[Math.floor(Math.random()*BOWLS.length)],tea:(()=>{const k=store.get('tea2');return TEAS.some(t=>t.k===k)?k:'mountain'})(),
+const me={activeAt:Date.now(),x:(Math.random()-.5)*.8,z:9.6,lie:false,served:false,read:false,piano:false,pianoHit:0,ry:0,mode:'walk',seat:null,brew:null,sk:0,drink:false,act:null,actAt:0,bowl:BOWLS[Math.floor(Math.random()*BOWLS.length)],tea:(()=>{const k=store.get('tea2');return TEAS.some(t=>t.k===k)?k:'mountain'})(),
   greet:'',greetAt:0,phase:null,steep:0,until:0,total:0,emote:null,emoteAt:0,color:(()=>{const c=store.get('robe');if(typeof c==='string'&&ROBES.includes(c))return c;const n=ROBES[Math.floor(Math.random()*ROBES.length)];store.set('robe',n);return n})()};
 me.sips=Math.max(0,Math.min(100000,(store.get('sips')|0)));   // the head keeps growing across visits in this browser
 me.char=makeChar(me.color);setSprout(me.char,me.sips);setBowlColor(me.char.hand,me.bowl);vesselize(me.char.hand);
 const others=new Map();
 let room=null,myPeer='';
 const emotes=new Map(),greetSeen={};
-const inside=(x,z)=>z<WALL_Z;
+const inside=(x,z)=>z<WALL_Z&&z>-4.9&&Math.abs(x)<7.97;   // on the library's oak floor
+// the deck you can walk on: inside the hull outline, half a metre in from the rail (the outline's z runs the other way to the world's)
+const onDeck=(x,z)=>{if(z>YARD_Z)return false;const P=HULL;let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const [xi,zi]=P[i],[xj,zj]=P[j];if(((zi>-z)!==(zj>-z))&&(x<(xj-xi)*(-z-zi)/(zj-zi)+xi))c=!c}
+  if(!c)return false;for(let i=0,j=P.length-1;i<P.length;j=i++){const [ax,az]=P[j],[bx,bz]=P[i],dx=bx-ax,dz=bz-az,t=clamp(((x-ax)*dx+(-z-az)*dz)/(dx*dx+dz*dz||1),0,1);if(Math.hypot(x-ax-dx*t,-z-az-dz*t)<.55)return false}return true};
 
 /* ===== input: drag to walk, drag to look while seated, pinch or wheel to zoom ===== */
 const cv=$('gl'),joyEl=$('joy'),knob=$('knob');
@@ -2012,12 +2016,12 @@ function moveMe(dt){if(me.piano){me.char.speed=0;return}
   let mx=rx*iv.x-fx*iv.y,mz=rz*iv.x-fz*iv.y;const ml=Math.hypot(mx,mz)||1;mx/=ml;mz/=ml;
   const g=clamp((iv.m-.08)/.92,0,1),sp=SPEED*g*g*(inside(me.x,me.z)?1:1.35);/* a little brisker in the yard */
   let nx=me.x+mx*sp*dt,nz=me.z+mz*sp*dt;
-  const inDoor=Math.abs(nx)<DOOR_HALF-.22;
-  if(inside(me.x,me.z)!==inside(nx,nz)&&!inDoor){nz=me.z;if(Math.abs(nx)<2.2)nx-=Math.sign(nx)*Math.min(Math.abs(nx),dt*1.6)}
-  else if(!inDoor&&Math.abs(nz-WALL_Z)<.45&&Math.abs(nx)<2.2&&Math.abs(mz)>.5)nx-=Math.sign(nx)*Math.min(Math.abs(nx),dt*1.2);
-  if(inside(nx,nz)){nx=clamp(nx,-ROOM_X,ROOM_X);nz=Math.max(nz,-4.55);if(!inDoor)nz=Math.min(nz,WALL_Z-.3);
-    for(const [x0,z0,x1,z1] of OBST){if(nx>x0&&nx<x1&&nz>z0&&nz<z1){const dl=nx-x0,dr=x1-nx,dn=nz-z0,df=z1-nz,m=Math.min(dl,dr,dn,df);if(m===dl)nx=x0;else if(m===dr)nx=x1;else if(m===dn)nz=z0;else nz=z1}}}
-  else{nx=clamp(nx,-YARD_X,YARD_X);nz=Math.min(nz,YARD_Z);if(!inDoor)nz=Math.max(nz,WALL_Z+.3)}
+  const inDoor=Math.abs(nx)<DOOR_HALF-.22,atWall=Math.abs(nx)<8.1;
+  if(atWall&&!inDoor&&((me.z<WALL_Z)!==(nz<WALL_Z))){nz=me.z;if(Math.abs(nx)<2.2)nx-=Math.sign(nx)*Math.min(Math.abs(nx),dt*1.6)}
+  else if(atWall&&!inDoor&&Math.abs(nz-WALL_Z)<.45&&Math.abs(nx)<2.2&&Math.abs(mz)>.5)nx-=Math.sign(nx)*Math.min(Math.abs(nx),dt*1.2);
+  if(atWall&&!inDoor)nz=me.z<WALL_Z?Math.min(nz,WALL_Z-.3):Math.max(nz,WALL_Z+.3);
+  for(const [x0,z0,x1,z1] of OBST){if(nx>x0&&nx<x1&&nz>z0&&nz<z1){const dl=nx-x0,dr=x1-nx,dn=nz-z0,df=z1-nz,m=Math.min(dl,dr,dn,df);if(m===dl)nx=x0;else if(m===dr)nx=x1;else if(m===dn)nz=z0;else nz=z1}}
+  if(!onDeck(nx,nz)){if(onDeck(nx,me.z))nz=me.z;else if(onDeck(me.x,nz))nx=me.x;else{nx=me.x;nz=me.z}}
   me.x=nx;me.z=nz;me.ry=angLerp(me.ry,Math.atan2(-mx,-mz),Math.min(1,dt*5));me.char.speed=sp;
   if(!joy)camT.th=angLerp(camT.th,me.ry,Math.min(1,dt*.8));
   movedAt=performance.now();
@@ -2052,7 +2056,7 @@ function sitAt(i){
   me.seatAt=Date.now();warmAudio();
   joy=null;joyEl.hidden=true;
   me.mode='sit';me.seat=i;me.lie=false;me.served=false;me.x=seatPos[i].x;me.z=seatPos[i].z;me.ry=seatRy[i];setPose(me.char,SEATS[i].kind==='bar'?'stand':'sit');
-  $('sitBtn').hidden=true;nearSeat=null;seats.forEach(s=>s.cu.material=s.baseM);$('lie').hidden=!isBed(i);$('lie').textContent='눕기';me.read=false;updateRead();
+  $('sitBtn').hidden=true;nearSeat=null;seats.forEach(s=>s.cu.material=s.baseM);$('lie').hidden=!isBed(i);$('lie').textContent=isDaybed(i)?'기대앉기':'눕기';me.read=false;updateRead();
   $('stand').hidden=false;$('cha').disabled=false;$('hint').style.opacity=0;
   Object.assign(camT,SEATS[i].kind==='bar'?{th:me.ry+2.1,el:.3,r:2.6}:{th:me.ry,el:.32,r:3.4});startBrew();pickCat=SEATS[i].kind==='bar'?'coffee':null;renderTeas();$('bar').classList.add('teas-open');
 }
@@ -2144,11 +2148,11 @@ function brewText(msg){
   if(msg!==undefined)brewNote=msg;
   {const tb=$('tour');if(tb&&!tour)tb.textContent=me.mode==='sit'?'일어나 둘러보기':'둘러보기'}
   const pb=$('pourBtn');
-  if(me.mode!=='sit'){$('brewMsg').textContent=brewNote||(inside(me.x,me.z)?'빈 자리 앞에 서면 앉을 수 있어요':'마당에 도착했어요');$('brewbar').style.width='0';pb.hidden=true;$('brewBtn').hidden=true;return}
+  if(me.mode!=='sit'){$('brewMsg').textContent=brewNote||(inside(me.x,me.z)?'빈 자리 앞에 서면 앉을 수 있어요':me.z<WALL_Z?'갑판에 나왔어요 · 바다가 가까워요':'마당에 도착했어요');$('brewbar').style.width='0';pb.hidden=true;$('brewBtn').hidden=true;return}
   brewNote='';
   const t=teaOf(me.tea),kd=KIND(me.tea),pot=POT(me.tea),left=me.until?Math.max(0,Math.ceil((me.until-Date.now())/1000)):0,cupW=pot?'찻잔':'잔';
   let m;
-  if(me.lie&&(!isDaybed(me.seat)||!me.served))m=SEATS[me.seat]&&SEATS[me.seat].kind==='sun'?'갑판 썬베드에 누워 바다를 보는 중':'데이베드에 누워 바다를 보는 중';
+  if(me.lie&&(!isDaybed(me.seat)||!me.served))m=SEATS[me.seat]&&SEATS[me.seat].kind==='sun'?'갑판 썬베드에 누워 바다를 보는 중':'데이베드에 기대앉아 바다를 보는 중';
   else if(kd==='coffee'){
     if(me.act==='cd2tp')m='원두를 드리퍼에 담는 중';
     else if(me.act==='tb2tp')m='뜨거운 물을 조금 부어 뜸을 들이는 중';
@@ -2202,10 +2206,11 @@ $('brewBtn').onclick=()=>{if(me.mode==='sit'&&(!me.lie||isDaybed(me.seat))&&me.b
 $('pourBtn').onclick=()=>{if(me.mode!=='sit'||(me.lie&&!isDaybed(me.seat))||me.act)return;if(KIND(me.tea)==='wine'){me.sk=1;startAct('sk2bd');return}if(me.sk>0)startAct('sk2bd')};
 function updateSwirl(){$('swirl').hidden=!(me.mode==='sit'&&KIND(me.tea)==='wine'&&me.drink&&!me.lie)}
 $('swirl').onclick=()=>emote('swirl');
-function setLie(on){me.lie=on;toggleCha(false);setPose(me.char,me.lie?'lie':'sit');$('lie').textContent=me.lie?'일어나 앉기':'눕기';updateSwirl();
-  Object.assign(camT,me.lie?{th:me.ry+1.35,el:.6,r:3.1}:{th:me.ry,el:.32,r:3.4});presence();brewText()}
-$('lie').onclick=()=>{if(me.mode!=='sit'||!isBed(me.seat)||me.act)return;me.lie=!me.lie;toggleCha(false);setPose(me.char,me.lie?'lie':'sit');$('lie').textContent=me.lie?'일어나 앉기':'눕기';updateSwirl();
-  Object.assign(camT,me.lie?{th:me.ry+1.35,el:.6,r:3.1}:{th:me.ry,el:.32,r:3.4});presence();brewText()};
+function lieLabel(){return isDaybed(me.seat)?(me.lie?'바로 앉기':'기대앉기'):(me.lie?'일어나 앉기':'눕기')}
+function setLie(on){me.lie=on;toggleCha(false);setPose(me.char,me.lie?'lie':'sit');$('lie').textContent=lieLabel();updateSwirl();
+  Object.assign(camT,me.lie?(isDaybed(me.seat)?{th:me.ry,el:.3,r:3.2}:{th:me.ry+1.35,el:.6,r:3.1}):{th:me.ry,el:.32,r:3.4});presence();brewText()}
+$('lie').onclick=()=>{if(me.mode!=='sit'||!isBed(me.seat)||me.act)return;me.lie=!me.lie;toggleCha(false);setPose(me.char,me.lie?'lie':'sit');$('lie').textContent=lieLabel();updateSwirl();
+  Object.assign(camT,me.lie?(isDaybed(me.seat)?{th:me.ry,el:.3,r:3.2}:{th:me.ry+1.35,el:.6,r:3.1}):{th:me.ry,el:.32,r:3.4});presence();brewText()};
 $('carry').onclick=()=>{if(me.mode!=='sit'||SEATS[me.seat].kind!=='bar'||!me.drink)return;
   // the nearest free chair or daybed; walk there along the open aisle, round the table, and sit with the drink in hand
   let best=-1,bd=1e9;SEATS.forEach((s,i)=>{if(s.kind==='bar'||s.kind==='sun'||seatOwner(i))return;const d=Math.hypot(s.p.x-me.x,s.p.z-me.z);if(d<bd){bd=d;best=i}});
@@ -2246,7 +2251,8 @@ function goMenu(open){const inn=inside(me.x,me.z);$('goBtn').setAttribute('aria-
   $('goDeck').hidden=!open||!inn;$('goLib').hidden=!open||inn;$('goPiano').hidden=!open||!!me.piano}
 $('goBtn').onclick=()=>goMenu($('goBtn').getAttribute('aria-expanded')!=='true');
 function goTo(where){goMenu(false);try{if(tour)stopTour()}catch(e){}if(me.piano)leavePiano();if(me.mode==='sit')standUp(where==='lib'?'라이브러리로 가는 중':'갑판으로 가는 중');
-  if(me.mode!=='walk')return;const inn=inside(me.x,me.z),pts=[];
+  if(me.mode!=='walk')return;const inn=me.z<WALL_Z,pts=[];
+  if(where==='lib'&&inn&&!inside(me.x,me.z))pts.push([clamp(me.x,-6.5,6.5),-3.9]);   // from the open deck in front, just step in
   if(inn&&where!=='lib'){if(me.z<2.3&&Math.abs(me.x)<2.9)pts.push([me.x<0?-2.95:2.95,me.z]);pts.push([0,2.6],[0,WALL_Z-.5],[0,WALL_Z+.9])}
   if(!inn&&where==='lib')pts.push([0,Math.max(WALL_Z+.9,Math.min(me.z,6.6))],[0,WALL_Z+.9],[0,WALL_Z-.5],[0,2.6]);
   if(where==='deck')pts.push([0,6.6]);if(where==='piano')pts.push([0,6.6],[PIANO_BENCH.x-.6,PIANO_BENCH.z]);
@@ -2259,8 +2265,11 @@ $('progBtn').onclick=()=>{try{window.open('https://borih-official.github.io/odys
 $('tea').onclick=e=>{const cb=e.target.closest('.tea-cat');if(cb){pickCat=cb.dataset.c;renderTeas();return}const b=e.target.closest('.tea');if(!b||b.dataset.k===me.tea&&(me.mode!=='sit'||me.served))return;me.tea=b.dataset.k;store.set('tea2',me.tea);pickCat=null;renderTeas();$('bar').classList.remove('teas-open');if(me.mode==='sit'){me.sk=0;me.drink=false;me.served=true;startBrew();updateSwirl()}else presence()};
 
 /* ===== presence ===== */
-function presence(){if(!room)return;room.presence({away:document.hidden?1:0,name:me.name,color:me.color,bowl:me.bowl,x:+me.x.toFixed(2),z:+me.z.toFixed(2),ry:+me.ry.toFixed(2),mode:me.mode,seat:me.seat,lie:me.lie?1:0,served:me.served?1:0,book:document.body.classList.contains('cha')?1:0,read:me.read?1:0,piano:me.piano?1:0,
+function presence(){if(!room)return;room.presence({away:document.hidden?1:0,activeAt:me.activeAt||Date.now(),name:me.name,color:me.color,bowl:me.bowl,x:+me.x.toFixed(2),z:+me.z.toFixed(2),ry:+me.ry.toFixed(2),mode:me.mode,seat:me.seat,lie:me.lie?1:0,served:me.served?1:0,book:document.body.classList.contains('cha')?1:0,read:me.read?1:0,piano:me.piano?1:0,
   tea:me.tea,greet:me.greet.slice(0,60),greetAt:me.greetAt,seatAt:me.seatAt||0,brew:me.brew,steep:me.steep,sips:me.sips,cup:+(me.cup||0).toFixed(2),sk:me.sk,drink:me.drink,act:me.act,actAt:me.actAt,emote:me.emote,emoteAt:me.emoteAt}).catch(()=>{})}
+const IDLE_HIDE=60*60e3;   // an hour without any sign of life and you are no longer shown to others
+// any touch, key or click counts as a sign of life; the first one after a quiet spell tells the room at once
+['pointerdown','keydown','wheel'].forEach(ev=>addEventListener(ev,()=>{const now=Date.now(),was=me.activeAt||0;me.activeAt=now;if(now-was>5*60e3)presence()},{passive:true,capture:true}));
 let pT=null,lastPos=0;const presenceSoon=()=>{clearTimeout(pT);pT=setTimeout(presence,500)};
 
 let lastSay=0;
@@ -2306,7 +2315,7 @@ function syncPeers(list){
 const labelsEl=$('labels'),tags={};
 function dropTag(k){if(tags[k]){tags[k].remove();delete tags[k]}}
 const nameOfOther=o=>{const n=typeof o.pr.name==='string'?o.pr.name.trim().slice(0,12):'';return n||'이삭님'};
-function statusOf(pr){if(pr.piano)return '피아노 치는 중';if(pr.mode!=='sit')return pr.z<WALL_Z?'라이브러리를 거니는 중':'갑판을 걷는 중';const t=teaOf(pr.tea),kd=KIND(pr.tea);if(pr.lie)return pr.read?'누워서 책 읽는 중':'누워서 바다 보는 중';if(pr.read)return '책 읽는 중';if(!pr.served)return '무엇을 마실지 고르는 중';
+function statusOf(pr){if(pr.piano)return '피아노 치는 중';if(pr.mode!=='sit')return inside(pr.x,pr.z)?'라이브러리를 거니는 중':'갑판을 걷는 중';const t=teaOf(pr.tea),kd=KIND(pr.tea);if(pr.lie)return isDaybed(pr.seat)?(pr.read?'기대앉아 책 읽는 중':'기대앉아 바다 보는 중'):(pr.read?'누워서 책 읽는 중':'누워서 바다 보는 중');if(pr.read)return '책 읽는 중';if(!pr.served)return '무엇을 마실지 고르는 중';
   if(kd==='coffee'){if(pr.act==='cd2tp')return '원두 담는 중';if(pr.act==='tb2tp')return '뜸 들이는 중';if(pr.act==='tp2sk')return '커피 내리는 중';if(pr.act==='sk2bd')return '잔에 따르는 중';if(pr.drink)return `${t.n} 한 잔`;if(pr.brew==='steep')return '뜸 들이는 중';if(pr.brew==='ready')return '커피 준비';return '앉아 있어요'}
   if(kd==='wine'){if(pr.act==='sk2bd')return '와인 따르는 중';if(pr.drink)return `${t.n} 한 잔`;return '앉아 있어요'}
   const pt_=POT(pr.tea);if(pr.act==='cd2tp')return '찻잎 넣는 중';if(pr.act==='tb2tp')return pt_?'찻주전자에 물 붓는 중':'다관에 물 붓는 중';if(pr.act==='tp2sk')return '숙우에 따르는 중';if(pr.act==='sk2bd')return pt_?'찻잔에 따르는 중':'잔에 따르는 중';
@@ -2389,14 +2398,14 @@ const BOOKTEX=(()=>{const mk=(w,h,f)=>{const c=document.createElement('canvas');
   return{pageM:new THREE.MeshStandardMaterial({map:page,roughness:.9}),edgeM:mat('#efe9da',{roughness:.9}),coverM:new THREE.MeshStandardMaterial({map:cover,roughness:.7})}})();
 function latteArt(m,k){const on=k==='latte'||k==='cappu';if(!!m.userData.art===on)return;m.userData.art=on;m.map=on?HOUSE.latte:null;if(on){m.color.set('#ffffff');m.emissive.set('#000000')}else m.userData.hex=null;m.needsUpdate=true}
 const lieV=new THREE.Vector3();
-const LOUNGE=1.02;   // how far the body leans back on a daybed (radians from upright)
+const LOUNGE=.36;   // how far the body tips back when sitting back on a daybed (radians from upright)
 const isDaybed=i=>i!=null&&SEATS[i]&&(SEATS[i].kind==='kline'||SEATS[i].kind==='round');
 function placeChar(c,seat,lie,x,z,ry,act){const g=c.g;g.rotation.order='YXZ';if(c.lieLegs)c.lieLegs.visible=false;
   if(isDaybed(seat)&&act){   // brewing or pouring: turn and sit on the side of the daybed, facing the little table
     const S=SEATS[seat];seatLocal(seat,S.kind==='round'?.48:.34,0,S.tray.z,lieV);g.position.copy(lieV);g.rotation.set(0,seatRy[seat]-Math.PI/2,0);setPose(c,'sit');return}
-  if(isDaybed(seat))setPose(c,lie?'lie':'sit');
+  if(isDaybed(seat))setPose(c,'sit');
   if(seat!=null&&lie&&SEATS[seat].kind==='sun'){const r=seatRy[seat];seatLocal(seat,-1.0,.08,.3,lieV);g.position.copy(lieV);g.rotation.set(Math.PI/2,Math.atan2(Math.cos(r),-Math.sin(r)),0)}   // along the lounger, head on the lowered back rest
-  else if(seat!=null&&lie){const rd=SEATS[seat].kind==='round';seatLocal(seat,0,.13,rd?-.32:-.3,lieV);g.position.copy(lieV);g.rotation.set(LOUNGE,seatRy[seat],0);c.lieLegs.rotation.x=-LOUNGE;c.lieLegs.visible=true;return}   // half-reclined: hips on the mattress, back against the pillow, legs out toward the sea
+  else if(seat!=null&&lie&&isDaybed(seat)){const rd=SEATS[seat].kind==='round';seatLocal(seat,0,.02,rd?.18:.24,lieV);g.position.copy(lieV);g.rotation.set(LOUNGE,seatRy[seat],0);return}   // sitting back against the pillow, facing the sea, the body tipped back a little
   else{g.position.set(x,seat==='piano'?PIANO_Y:seat!=null?seatPos[seat].y:floorAt(x,z),z);g.rotation.set(0,ry,0)}}
 const bitM4=new THREE.Matrix4(),bitE=new THREE.Euler(),v=new THREE.Vector3(),sv=new THREE.Vector3(),sa=new THREE.Vector3(),sb=new THREE.Vector3();let last=performance.now();
 let lastRaw=0,lastInput=0;const PERF={from:0,n:0,sum:0,done:false};
@@ -2896,7 +2905,7 @@ let sbOne=null;function sbClient(){if(sbOne)return sbOne;if(!window.supabase)ret
   try{sbOne=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:10}}})}catch(e){sbOne=null}return sbOne}
 const SB_URL='https://tckghakjphopeqyuncyd.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRja2doYWtqcGhvcGVxeXVuY3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTA3OTUsImV4cCI6MjEwOTE4Njc5NX0.Fb9voUGZXIXlXY2Q8uTDxCNjwJmRpsNr9lh7CxqPSSo',ROOM_NAME='borih-morning-morningrecipe';
 const myKey=(()=>{let k=store.get('id');if(!k){k='v'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);store.set('id',k)}return k+'-'+Math.random().toString(36).slice(2,6)})();
-const APP_V='10';
+const APP_V='12';
 $('ver').textContent='v'+APP_V;
 function connectRoom(){
   // Presence only says who is here (tracked once per connection). Everything else rides broadcasts:
@@ -2914,7 +2923,10 @@ function connectRoom(){
       for(const k in peers){const p=peers[k],away=p.st&&p.st.away;
         // someone who switched to another window keeps their cushion for up to 30 minutes, shown as stepped away
         const keep=away?30*60e3:h.has(k)?60e3:15000;if(now-p.seen>keep||(p.leftAt&&now-p.leftAt>180e3)){delete peers[k];continue}
-        if(!p.st)continue;const pr=Object.assign({},p.st);if(p.pos&&p.pos.t>=(p.stT||0))Object.assign(pr,p.pos);
+        if(!p.st)continue;
+        // no touch, key or step from them for an hour: leave them out of the room for now (they come straight back on their next touch)
+        if(p.st.activeAt&&now-num(p.st.activeAt)>IDLE_HIDE)continue;
+        const pr=Object.assign({},p.st);if(p.pos&&p.pos.t>=(p.stT||0))Object.assign(pr,p.pos);
         out.push({peer:k,by:null,kind:'viewer',sameTab:false,presence:pr})}
       out.push({peer:myKey,by:null,kind:'viewer',sameTab:true,presence:latest||{}});
       return out};
