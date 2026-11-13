@@ -1843,15 +1843,13 @@ function crownFlower(petals,len,wid,col,heart,heartR){const f=new THREE.Group(),
   for(let k=0;k<petals;k++){const h=new THREE.Group();h.rotation.z=k*Math.PI*2/petals;f.add(h);
     const p=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),pm);p.scale.set(wid,len,.004);p.position.y=len*.95;h.add(p)}
   const c=new THREE.Mesh(new THREE.SphereGeometry(heartR,10,8),mat(heart,{roughness:.6}));c.scale.z=.6;f.add(c);return f}
-function laurel(g,leafM,count,berryM){
-  // two branches start low at the back of the head and run forward to meet over the brow; at each node three broad leaves
-  // rise up and out, tips leaning forward, overlapping the next node like the wreaths on Roman marble heads
-  const geo=new THREE.SphereGeometry(1,10,7),bg=new THREE.SphereGeometry(.011,8,6);
-  [-1,1].forEach(side=>{for(let k=0;k<count;k++){const u=k/(count-1),a=side*(Math.PI-.28-u*(Math.PI-.42)),x=Math.sin(a)*CR,z=-Math.cos(a)*CR;
-    const th=Math.PI/2-a+(side>0?Math.PI:0),big=1-.25*u;   // tip toward the front; leaves get a little smaller toward the brow
-    [[-1.2,.0,.0],[-.85,.75,.014],[-.95,-.6,-.006]].forEach(([pitch,roll,off])=>{const l=new THREE.Mesh(geo,leafM);l.scale.set(.03*big,.008,.074*big);l.rotation.order='YXZ';l.rotation.set(pitch,th,roll*side);
-      l.position.set(x+Math.sin(a)*off,.035+Math.abs(off)*.6,z-Math.cos(a)*off);g.add(l)});
-    if(berryM&&k%3===1){const b=new THREE.Mesh(bg,berryM);b.position.set(x*1.06,.004,z*1.06);g.add(b)}}})}
+function laurel(g,leafM,count){
+  // two branches from the front meeting at the back, leaves in pairs pointing back along the ring (the first leaf shape, kept as it was)
+  const geo=new THREE.SphereGeometry(1,8,6);
+  [-1,1].forEach(side=>{for(let k=0;k<count;k++){const a=side*(.32+k*(Math.PI-.42)/count),x=Math.sin(a)*CR,z=-Math.cos(a)*CR;
+    const th=Math.PI/2-a+(side<0?Math.PI:0);   // the leaf's length runs along the ring, tip toward the back
+    [-1,1].forEach(out=>{const l=new THREE.Mesh(geo,leafM);l.scale.set(.022,.006,.058-.014*(k/count));l.rotation.order='YXZ';l.rotation.set(-.55*out,th,0);
+      l.position.set(x,.016*out,z);g.add(l)})}})}
 
 // a small card the moment your crown changes: what it is and how it belongs to Greece
 const CROWN_STORY=[
@@ -1881,8 +1879,8 @@ function setCrown(c,sips){const st=crownStage(sips);if(c.crownSt===st)return;con
     const plan=st===0?['d','d','d','d','d']:st===1?['d','a','d','a','d','a','d','a']:['d','a','c','d','a','c','d','a','c','d','a','c'];
     const span=Math.PI*1.6;plan.forEach((t,k)=>{const a=-span/2+span*(k+.5)/plan.length;put(t==='d'?daisy():t==='a'?anem(k):cist(),a,.008)})}
   else{const gold=st===4,lm=gold?GOLD_M:mat('#3f6b34',{roughness:.55,side:THREE.DoubleSide});
-    const twig=new THREE.Mesh(new THREE.TorusGeometry(CR,.008,6,48,Math.PI*1.7),gold?GOLD_M:mat('#5a4a2c',{roughness:.8}));twig.rotation.set(Math.PI/2,0,Math.PI/2+Math.PI*.15);g.add(twig);
-    laurel(g,lm,11,gold?GOLD_M:mat('#2a2233',{roughness:.4}));
+    const twig=new THREE.Mesh(new THREE.TorusGeometry(CR,.005,6,48,Math.PI*1.7),gold?GOLD_M:mat('#5a4a2c',{roughness:.8}));twig.rotation.set(Math.PI/2,0,Math.PI/2+Math.PI*.15);g.add(twig);
+    laurel(g,lm,9);
     if(gold){const ear=new THREE.Group(),gg=new THREE.SphereGeometry(1,8,6),ag=new THREE.CylinderGeometry(.0016,.0016,.07,4);
       for(let k=0;k<9;k++){const gr=new THREE.Mesh(gg,GOLD_M);gr.scale.set(.01,.018,.01);gr.position.set(k%2?.01:-.01,k*.017,0);ear.add(gr);
         const aw=new THREE.Mesh(ag,GOLD_M);aw.position.set(k%2?.022:-.022,k*.017+.03,0);aw.rotation.z=k%2?-.45:.45;ear.add(aw)}
@@ -2870,7 +2868,7 @@ let sbOne=null;function sbClient(){if(sbOne)return sbOne;if(!window.supabase)ret
   try{sbOne=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:10}}})}catch(e){sbOne=null}return sbOne}
 const SB_URL='https://tckghakjphopeqyuncyd.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRja2doYWtqcGhvcGVxeXVuY3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTA3OTUsImV4cCI6MjEwOTE4Njc5NX0.Fb9voUGZXIXlXY2Q8uTDxCNjwJmRpsNr9lh7CxqPSSo',ROOM_NAME='borih-morning-morningrecipe';
 const myKey=(()=>{let k=store.get('id');if(!k){k='v'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);store.set('id',k)}return k+'-'+Math.random().toString(36).slice(2,6)})();
-const APP_V='5';
+const APP_V='6';
 $('ver').textContent='v'+APP_V;
 function connectRoom(){
   // Presence only says who is here (tracked once per connection). Everything else rides broadcasts:
