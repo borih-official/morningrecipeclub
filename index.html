@@ -1695,6 +1695,11 @@ function makeChar(color){
   const standBody=new THREE.Group();g.add(standBody);
   const st=new THREE.Mesh(new THREE.CylinderGeometry(.19,.32,.82,24),robeM);st.position.y=.5;st.castShadow=true;standBody.add(st);
   dressGreek(sitBody,standBody,himaM);
+  // legs for lounging on a daybed: the body leans back on the pillow from the hips, the legs run out along the mattress toward the sea
+  const lieLegs=new THREE.Group();lieLegs.visible=false;g.add(lieLegs);
+  {const L=.78,leg=new THREE.Mesh(new THREE.CylinderGeometry(.2,.15,L,20),robeM);leg.rotation.x=Math.PI/2;leg.position.set(0,.13,-L/2+.05);leg.castShadow=true;lieLegs.add(leg);
+   const hem=new THREE.Mesh(new THREE.CylinderGeometry(.158,.153,.07,24,1,true),MEANDER_M);hem.rotation.x=Math.PI/2;hem.position.set(0,.13,-L+.09);lieLegs.add(hem);
+   [-1,1].forEach(s=>{const f=new THREE.Mesh(new THREE.SphereGeometry(.07,12,8),mat('#3a2f28'));f.scale.set(1,1.5,.6);f.position.set(s*.07,.19,-L+.02);lieLegs.add(f)})}
   const footM=mat('#3a2f28');
   const feet=[-1,1].map(s=>{const f=new THREE.Mesh(new THREE.SphereGeometry(.075,12,8),footM);f.scale.set(1,.6,1.5);f.position.set(s*.11,.05,-.04);standBody.add(f);return f});
   const torso=new THREE.Group();g.add(torso);
@@ -1730,7 +1735,7 @@ function makeChar(color){
   {const br=new THREE.Mesh(new THREE.SphereGeometry(.024,12,8),GOLD_M);br.scale.z=.55;br.position.set(.2,.035,-.09);torso.add(br)}   // gold fibula pinning the himation
   const crownG=new THREE.Group();crownG.position.set(0,.335,.01);crownG.rotation.set(.34,0,0);torso.add(crownG);   // worn like a Roman statue's wreath: round the head over the hair, high over the brow, low at the back
   const hand=makeBodeumi('#c98a72');hand.visible=false;torso.add(hand);
-  const c={g,torso,crownG,crownSt:-2,crownSeed:hashStr(color),sproutG:sprout,head:headM,hand,hold:0,arms,sprout:{stem,leaves,ear,leafM,grains,earM,flower,petals,flowerM,heartM,stage:-1,n:-1},feet,sitBody,standBody,bob:Math.random()*6,walkPh:0,speed:0,pose:null};
+  const c={g,torso,lieLegs,crownG,crownSt:-2,crownSeed:hashStr(color),sproutG:sprout,head:headM,hand,hold:0,arms,sprout:{stem,leaves,ear,leafM,grains,earM,flower,petals,flowerM,heartM,stage:-1,n:-1},feet,sitBody,standBody,bob:Math.random()*6,walkPh:0,speed:0,pose:null};
   setPose(c,'stand');return c;
 }
 // a slender blade, widest a third of the way out, curving slightly, like the leaves on 🌾
@@ -2125,6 +2130,7 @@ function finishAct(){
   else if(k==='tp2sk'){me.sk=3;me.brew='ready';timer(0)}
   else if(k==='sk2bd'){me.sk=Math.max(0,me.sk-1);me.drink=true;me.cup=1;logTea();countCup();
     if(me.sk===0)me.brew='idle'}
+  if(isDaybed(me.seat)&&me.mode==='sit'&&!me.act&&!me.lie)setLie(true);
   updateSwirl();
   presence();brewText();
 }
@@ -2137,7 +2143,7 @@ function brewText(msg){
   brewNote='';
   const t=teaOf(me.tea),kd=KIND(me.tea),pot=POT(me.tea),left=me.until?Math.max(0,Math.ceil((me.until-Date.now())/1000)):0,cupW=pot?'찻잔':'잔';
   let m;
-  if(me.lie)m=SEATS[me.seat]&&SEATS[me.seat].kind==='sun'?'갑판 썬베드에 누워 바다를 보는 중':'데이베드에 누워 바다를 보는 중';
+  if(me.lie&&(!isDaybed(me.seat)||!me.served))m=SEATS[me.seat]&&SEATS[me.seat].kind==='sun'?'갑판 썬베드에 누워 바다를 보는 중':'데이베드에 누워 바다를 보는 중';
   else if(kd==='coffee'){
     if(me.act==='cd2tp')m='원두를 드리퍼에 담는 중';
     else if(me.act==='tb2tp')m='뜨거운 물을 조금 부어 뜸을 들이는 중';
@@ -2170,12 +2176,12 @@ function brewText(msg){
   const where=seatName(me.seat);
   $('brewMsg').textContent=`${where} · ${m}`;
   $('brewbar').style.width=me.total&&me.until?clamp(100*(1-left/me.total),0,100)+'%':'0';
-  const bb=$('brewBtn');bb.hidden=kd==='wine';bb.disabled=!!me.lie||!(me.brew==='idle'&&!me.act);
+  const bb=$('brewBtn');bb.hidden=kd==='wine';const lieBlock=!!me.lie&&!isDaybed(me.seat);bb.disabled=lieBlock||!(me.brew==='idle'&&!me.act);
   bb.textContent=kd==='coffee'?'커피 내리기':me.steep>0?(pot?'한 번 더 우리기':`${me.steep+1}탕 우리기`):'차 우리기';   // tea: same leaves, next infusion · coffee: fresh grounds every time
   pb.hidden=false;
-  if(kd==='wine'){pb.disabled=!!me.lie||!!me.act;pb.textContent='와인 따르기'}
-  else{pb.disabled=!!me.lie||!(me.sk>0&&!me.act);pb.textContent=me.sk>0?`${cupW}에 따르기 · ${me.sk}`:`${cupW}에 따르기`}
-  $('sip').disabled=!me.drink||!!me.act||!!me.lie||!!me.read;
+  if(kd==='wine'){pb.disabled=lieBlock||!!me.act;pb.textContent='와인 따르기'}
+  else{pb.disabled=lieBlock||!(me.sk>0&&!me.act);pb.textContent=me.sk>0?`${cupW}에 따르기 · ${me.sk}`:`${cupW}에 따르기`}
+  $('sip').disabled=!me.drink||!!me.act||(!!me.lie&&!isDaybed(me.seat))||!!me.read;
   $('carry').hidden=!(SEATS[me.seat].kind==='bar'&&me.drink&&!me.act);
   if(!me.served&&!me.lie){$('brewMsg').textContent=`${where} · 무엇을 드릴까요? 아래에서 차 · 커피 · 와인을 골라 주세요`;bb.hidden=true;pb.hidden=true;$('sip').disabled=true}
 }
@@ -2187,10 +2193,12 @@ setInterval(()=>{
   }
   brewText();
 },400);
-$('brewBtn').onclick=()=>{if(me.mode==='sit'&&!me.lie&&me.brew==='idle'&&!me.act)startAct(me.steep===0||KIND(me.tea)==='coffee'?'cd2tp':'tb2tp')};   // new leaves for a fresh pot, then water
-$('pourBtn').onclick=()=>{if(me.mode!=='sit'||me.lie||me.act)return;if(KIND(me.tea)==='wine'){me.sk=1;startAct('sk2bd');return}if(me.sk>0)startAct('sk2bd')};
+$('brewBtn').onclick=()=>{if(me.mode==='sit'&&(!me.lie||isDaybed(me.seat))&&me.brew==='idle'&&!me.act)startAct(me.steep===0||KIND(me.tea)==='coffee'?'cd2tp':'tb2tp')};   // new leaves for a fresh pot, then water
+$('pourBtn').onclick=()=>{if(me.mode!=='sit'||(me.lie&&!isDaybed(me.seat))||me.act)return;if(KIND(me.tea)==='wine'){me.sk=1;startAct('sk2bd');return}if(me.sk>0)startAct('sk2bd')};
 function updateSwirl(){$('swirl').hidden=!(me.mode==='sit'&&KIND(me.tea)==='wine'&&me.drink&&!me.lie)}
 $('swirl').onclick=()=>emote('swirl');
+function setLie(on){me.lie=on;toggleCha(false);setPose(me.char,me.lie?'lie':'sit');$('lie').textContent=me.lie?'일어나 앉기':'눕기';updateSwirl();
+  Object.assign(camT,me.lie?{th:me.ry+1.35,el:.6,r:3.1}:{th:me.ry,el:.32,r:3.4});presence();brewText()}
 $('lie').onclick=()=>{if(me.mode!=='sit'||!isBed(me.seat)||me.act)return;me.lie=!me.lie;toggleCha(false);setPose(me.char,me.lie?'lie':'sit');$('lie').textContent=me.lie?'일어나 앉기':'눕기';updateSwirl();
   Object.assign(camT,me.lie?{th:me.ry+1.35,el:.6,r:3.1}:{th:me.ry,el:.32,r:3.4});presence();brewText()};
 $('carry').onclick=()=>{if(me.mode!=='sit'||SEATS[me.seat].kind!=='bar'||!me.drink)return;
@@ -2376,9 +2384,14 @@ const BOOKTEX=(()=>{const mk=(w,h,f)=>{const c=document.createElement('canvas');
   return{pageM:new THREE.MeshStandardMaterial({map:page,roughness:.9}),edgeM:mat('#efe9da',{roughness:.9}),coverM:new THREE.MeshStandardMaterial({map:cover,roughness:.7})}})();
 function latteArt(m,k){const on=k==='latte'||k==='cappu';if(!!m.userData.art===on)return;m.userData.art=on;m.map=on?HOUSE.latte:null;if(on){m.color.set('#ffffff');m.emissive.set('#000000')}else m.userData.hex=null;m.needsUpdate=true}
 const lieV=new THREE.Vector3();
-function placeChar(c,seat,lie,x,z,ry){const g=c.g;g.rotation.order='YXZ';
+const LOUNGE=1.02;   // how far the body leans back on a daybed (radians from upright)
+const isDaybed=i=>i!=null&&SEATS[i]&&(SEATS[i].kind==='kline'||SEATS[i].kind==='round');
+function placeChar(c,seat,lie,x,z,ry,act){const g=c.g;g.rotation.order='YXZ';if(c.lieLegs)c.lieLegs.visible=false;
+  if(isDaybed(seat)&&act){   // brewing or pouring: turn and sit on the side of the daybed, facing the little table
+    const S=SEATS[seat];seatLocal(seat,S.kind==='round'?.42:.3,0,S.tray.z,lieV);g.position.copy(lieV);g.rotation.set(0,seatRy[seat]-Math.PI/2,0);setPose(c,'sit');return}
+  if(isDaybed(seat))setPose(c,lie?'lie':'sit');
   if(seat!=null&&lie&&SEATS[seat].kind==='sun'){const r=seatRy[seat];seatLocal(seat,-1.0,.08,.3,lieV);g.position.copy(lieV);g.rotation.set(Math.PI/2,Math.atan2(Math.cos(r),-Math.sin(r)),0)}   // along the lounger, head on the lowered back rest
-  else if(seat!=null&&lie){seatLocal(seat,0,SEATS[seat].kind==='round'?.15:.17,SEATS[seat].kind==='round'?-.86:-1.0,lieV);g.position.copy(lieV);g.rotation.set(Math.PI/2,seatRy[seat],0)}   // origin at the feet, toward the sea; the face looks up
+  else if(seat!=null&&lie){const rd=SEATS[seat].kind==='round';seatLocal(seat,0,.13,rd?-.32:-.3,lieV);g.position.copy(lieV);g.rotation.set(LOUNGE,seatRy[seat],0);c.lieLegs.rotation.x=-LOUNGE;c.lieLegs.visible=true;return}   // half-reclined: hips on the mattress, back against the pillow, legs out toward the sea
   else{g.position.set(x,seat==='piano'?PIANO_Y:seat!=null?seatPos[seat].y:floorAt(x,z),z);g.rotation.set(0,ry,0)}}
 const bitM4=new THREE.Matrix4(),bitE=new THREE.Euler(),v=new THREE.Vector3(),sv=new THREE.Vector3(),sa=new THREE.Vector3(),sb=new THREE.Vector3();let last=performance.now();
 let lastRaw=0,lastInput=0;const PERF={from:0,n:0,sum:0,done:false};
@@ -2409,14 +2422,14 @@ function frame(now){
   knotTree.tick(now);libCat.tick(now);barArt.tick(now);pianoTick(now);bodol.tick(now,s.alt);squidBoats.tick(now,s.alt);
   if(dropped.length)tickDropped(dt,now);
   if(!glideMe(dt))moveMe(dt);
-  placeChar(me.char,me.mode==='sit'?me.seat:(me.piano?'piano':null),me.lie,me.x,me.z,me.ry);
+  placeChar(me.char,me.mode==='sit'?me.seat:(me.piano?'piano':null),me.lie,me.x,me.z,me.ry,me.mode==='sit'?me.act:null);
   if(room&&now-lastPos>50&&now-movedAt<300){lastPos=now;presence()}
   updateRows(dt);
   updateSitButton();
   for(const o of others.values()){
     const pr=o.pr,px=o.x,pz=o.z,f=1-Math.exp(-dt*10);o.x+=(pr.x-o.x)*f;o.z+=(pr.z-o.z)*f;o.ry=angLerp(o.ry,+pr.ry||0,f);
     o.char.speed=pr.mode==='sit'?0:Math.min(4,Math.hypot(o.x-px,o.z-pz)/Math.max(dt,.001));
-    placeChar(o.char,o.pr.mode==='sit'&&Number.isInteger(o.pr.seat)&&seatPos[o.pr.seat]?o.pr.seat:(o.pr.piano?'piano':null),o.pr.lie,o.x,o.z,o.ry);
+    placeChar(o.char,o.pr.mode==='sit'&&Number.isInteger(o.pr.seat)&&seatPos[o.pr.seat]?o.pr.seat:(o.pr.piano?'piano':null),o.pr.lie,o.x,o.z,o.ry,o.pr.mode==='sit'?o.pr.act:null);
   }
   // tea ware on each table, and who is reaching for what
   const ez=x=>x*x*(3-2*x);
@@ -2474,7 +2487,7 @@ function frame(now){
     st.steam.forEach(o=>{o.ph=(o.ph+.004)%1;o.s.position.set(sv.x+Math.sin(o.ph*6+i)*.03,sv.y+.12+o.ph*.42,sv.z);o.s.material.opacity=hot?.3*Math.sin(o.ph*Math.PI):0;o.s.scale.setScalar(.09+o.ph*.2)});
   });
   if(me.mode!=='sit'){me.char.reachE=0;me.char.reachLE=0}
-  const anim=(key,c,pr)=>{const reading=pr.mode==='sit'&&!!pr.read,book=reading||(key==='me'?document.body.classList.contains('cha'):!!pr.book)&&!pr.lie;let bow=0,lift=0,swirl=0,hold=!!pr.piano||book||pr.mode==='sit'&&!!pr.drink&&!c.busy&&!pr.lie;const e=emotes.get(key);
+  const anim=(key,c,pr)=>{const reading=pr.mode==='sit'&&!!pr.read,book=reading||(key==='me'?document.body.classList.contains('cha'):!!pr.book)&&!pr.lie;let bow=0,lift=0,swirl=0,hold=!!pr.piano||book||pr.mode==='sit'&&!!pr.drink&&!c.busy&&(!pr.lie||isDaybed(pr.seat));const e=emotes.get(key);
     if(c.hand.userData.cups)setVessel(c.hand,CUP(pr.tea));
     if(e){const k=(now-e.at)/1000;if(k>3.2)emotes.delete(key);else{const w=Math.sin(Math.min(1,k/3.2)*Math.PI);if(e.k==='bow')bow=w;else if(e.k==='swirl'){if(hold)swirl=w}else if(hold)lift=w}}
     if(hold){const q=((now/1000+c.bob*7)%24)/24;if(q<.16)lift=Math.max(lift,Math.sin(q/.16*Math.PI))}
@@ -2878,7 +2891,7 @@ let sbOne=null;function sbClient(){if(sbOne)return sbOne;if(!window.supabase)ret
   try{sbOne=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:10}}})}catch(e){sbOne=null}return sbOne}
 const SB_URL='https://tckghakjphopeqyuncyd.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRja2doYWtqcGhvcGVxeXVuY3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTA3OTUsImV4cCI6MjEwOTE4Njc5NX0.Fb9voUGZXIXlXY2Q8uTDxCNjwJmRpsNr9lh7CxqPSSo',ROOM_NAME='borih-morning-morningrecipe';
 const myKey=(()=>{let k=store.get('id');if(!k){k='v'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);store.set('id',k)}return k+'-'+Math.random().toString(36).slice(2,6)})();
-const APP_V='8';
+const APP_V='9';
 $('ver').textContent='v'+APP_V;
 function connectRoom(){
   // Presence only says who is here (tracked once per connection). Everything else rides broadcasts:
