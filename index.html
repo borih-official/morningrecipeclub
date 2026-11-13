@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="description" content="에게해를 마주한 통창 라이브러리. 함께 앉아 차·커피·와인을 마시며 오뒷세이아를 읽어요.">
-<meta property="og:title" content="모닝레시피 라이브러리">
+<meta property="og:title" content="모닝레시피클럽 라이브러리">
 <meta property="og:description" content="오뒷세이아 읽으러 라이브러리로 와요. 바다 보며 한 잔 해요.">
-<title>모닝레시피 라이브러리</title>
+<title>모닝레시피클럽 라이브러리</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=2">
 <link rel="apple-touch-icon-precomposed" sizes="180x180" href="icon-180.png?v=2">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2">
-<meta name="apple-mobile-web-app-title" content="모닝레시피 라이브러리">
+<meta name="apple-mobile-web-app-title" content="모닝레시피클럽 라이브러리">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500&family=Poppins:wght@300;400;500&family=Inter:wght@400;500&display=swap">
 <style>
@@ -274,11 +274,11 @@ body.cha .greets,body.cha .say,body.cha .mine,body.cha .labels,body.cha .side,bo
 
 </head>
 <body>
-<canvas id="gl" aria-label="에게해를 마주한 모닝레시피 라이브러리. 마당에서 출입문으로 걸어 들어가 빈 자리에 앉아요."></canvas>
+<canvas id="gl" aria-label="에게해를 마주한 모닝레시피클럽 라이브러리. 마당에서 출입문으로 걸어 들어가 빈 자리에 앉아요."></canvas>
 <div class="gate" id="gate" hidden>
   <form class="gate-card" id="gateForm">
     <div class="logo">BORIH MORNING</div>
-    <p>모닝레시피 라이브러리에 오신 걸 환영해요.<br>라이브러리에서 불릴 이름을 알려주세요.</p>
+    <p>모닝레시피클럽 라이브러리에 오신 걸 환영해요.<br>라이브러리에서 불릴 이름을 알려주세요.</p>
     <p class="fine">이름과 걷는 모습, 남긴 메시지는 지금 라이브러리에 있는 모든 분에게 보여요.<br>창을 닫으면 라이브러리에서 나가요.</p>
     <p class="fine keep-fine"><b>같은 기기, 같은 브라우저로 다시 오면 기록이 이어져요.</b><br>사파리로 시작했다면 다음에도 사파리로 열어 주세요.<br>카카오톡·인스타그램 안이나 시크릿 모드에서는 새로 시작돼요.<br>홈 화면에 추가해 두면 다시 오기 쉬워요.</p>
     <p class="fine inapp-note" id="inappNote" hidden></p>
@@ -340,7 +340,7 @@ body.cha .greets,body.cha .say,body.cha .mine,body.cha .labels,body.cha .side,bo
     <button class="gb-link" id="mrHow" type="button">기록 이어가기 안내</button>
   </div></div>
   <div class="gb" id="gb" hidden><div class="gb-card" role="dialog" aria-label="이타케 올리브 방명록">
-    <div class="gb-head"><div><div class="logo">이타케 올리브</div><div class="gb-sub">모닝레시피 라이브러리 방명록 · 남긴 한 줄은 이타케 올리브에 카드로 걸려요</div></div><button class="btn" id="gbClose" type="button">닫기</button></div>
+    <div class="gb-head"><div><div class="logo">이타케 올리브</div><div class="gb-sub">모닝레시피클럽 라이브러리 방명록 · 남긴 한 줄은 이타케 올리브에 카드로 걸려요</div></div><button class="btn" id="gbClose" type="button">닫기</button></div>
     <p class="gb-story">오뒷세우스는 이타케의 올리브 둥치를 깎아 침대를 만들었고, 스무 해 만에 돌아와 그 비밀로 자기가 누구인지 밝혀요. 이 나무에는 같은 책을 같은 아침에 읽은 사람들이 남긴 한 줄이 카드로 걸려요. 클럽이 함께 읽어 갈수록 잎이 차오르고 꽃이 피고, 마지막 주에는 올리브가 열려요.</p>
     <form class="gb-form" id="gbForm"><input id="gbMsg" maxlength="80" autocomplete="off" placeholder="한 줄 남기기" aria-label="방명록 한 줄"><button class="btn main" type="submit" id="gbTie">걸기</button></form>
     <p class="gb-note" id="gbNote">이름과 남긴 말은 누구나 볼 수 있어요 · 링크는 걸 수 없어요</p>
@@ -869,7 +869,7 @@ function updateEnv(now,s){
   return p;
 }
 
-/* ===== 모닝레시피 라이브러리: glass to the floor on three sides, a white entrance wall with books and three paintings ===== */
+/* ===== 모닝레시피클럽 라이브러리: glass to the floor on three sides, a white entrance wall with books and three paintings ===== */
 const ROOM_H=3.4;
 // warm oak floor
 {const c=document.createElement('canvas');c.width=c.height=512;const f=c.getContext('2d');
@@ -898,7 +898,7 @@ box(.1,2.5,.14,doorM,-DOOR_HALF,1.25,WALL_Z);box(.1,2.5,.14,doorM,DOOR_HALF,1.25
 box(2.6,.24,.08,doorM,0,3.0,WALL_Z+.05);   // the header beam that carries the name
 (()=>{const c=document.createElement('canvas');c.width=640;c.height=160;const x=c.getContext('2d');const tex=new THREE.CanvasTexture(c);
   const draw=()=>{x.fillStyle='#f5f1eb';x.fillRect(0,0,640,160);x.strokeStyle='#2c2b28';x.lineWidth=3;x.strokeRect(8,8,624,144);
-    x.fillStyle='#2c2b28';x.textAlign='center';x.font='300 50px "Noto Serif KR", serif';x.fillText('모닝레시피 라이브러리',320,86);
+    x.fillStyle='#2c2b28';x.textAlign='center';x.font='300 42px "Noto Serif KR", serif';x.fillText('모닝레시피클럽 라이브러리',320,86,600);
     x.font='300 18px Poppins, sans-serif';x.fillStyle='#5d7a5a';x.fillText('B O R I H   ·   M O R N I N G   R E C I P E',320,128);tex.needsUpdate=true};
   draw();if(document.fonts)document.fonts.ready.then(draw);
   const m=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.55),new THREE.MeshBasicMaterial({map:tex}));m.position.set(0,3.0,WALL_Z+.1);scene.add(m)})();
@@ -1429,7 +1429,7 @@ const barArt=(()=>{const g=new THREE.Group();g.position.set(7.42,2.2,1.0);g.rota
   {const c=document.createElement('canvas');c.width=1024;c.height=200;const x=c.getContext('2d'),t=new THREE.CanvasTexture(c);
     const draw=()=>{x.fillStyle='#f5f1eb';x.fillRect(0,0,1024,200);x.textAlign='left';x.fillStyle='#2c2b28';x.font="400 46px 'Noto Serif KR', serif";x.fillText('열세 주의 빛',34,70);
       x.fillStyle='#5a5750';x.font="300 28px 'Noto Serif KR', serif";x.fillText('김승환 「시간을 지나, 남겨진 것들 The Timeless Rawness」(APART)에서 영감을 받아',34,124);
-      x.fillText('모닝레시피 라이브러리를 위해 새로 만든 작품 · 진도표를 체크할수록 빛이 차요',34,166);t.needsUpdate=true};
+      x.fillText('모닝레시피클럽 라이브러리를 위해 새로 만든 작품 · 진도표를 체크할수록 빛이 차요',34,166,956);t.needsUpdate=true};
     draw();try{document.fonts.ready.then(draw)}catch(e){}
     const pl=new THREE.Mesh(new THREE.PlaneGeometry(1.2,.235),new THREE.MeshBasicMaterial({map:t}));pl.position.set(0,-.56,.01);g.add(pl)}
   const wash=new THREE.SpotLight(0xdfe6ff,.6,3,.7,.6,1.5);wash.position.set(6.6,ROOM_H-.1,1.0);wash.target.position.set(7.42,2.2,1.0);scene.add(wash);scene.add(wash.target);
@@ -2491,7 +2491,7 @@ requestAnimationFrame(frame);
 let closed=false;
 function closeRoom(){if(closed)return;closed=true;try{room&&room.bye&&room.bye()}catch(e){}room=null;$('gate').hidden=true;
   const next=NEXT_URL?`<a class="btn main" href="${esc(NEXT_URL)}">${esc(NEXT_PLACE||'다음 라이브러리')}로 가기</a>`:'<span class="fine">다음 시즌은 보리 인스타그램에서 알려드릴게요.</span>';
-  document.body.insertAdjacentHTML('beforeend',`<div class="gate"><div class="gate-card"><div class="logo">BORIH · MORNING RECIPE</div><p>모닝레시피 라이브러리는 문을 닫았어요.<br>석 달 동안 오뒷세이아를 함께 읽어 주셔서 고마워요.${NEXT_PLACE?`<br>다음 라이브러리는 <b>${esc(NEXT_PLACE)}</b>이에요.`:''}</p>${next}</div></div>`)}
+  document.body.insertAdjacentHTML('beforeend',`<div class="gate"><div class="gate-card"><div class="logo">BORIH · MORNING RECIPE</div><p>모닝레시피클럽 라이브러리는 문을 닫았어요.<br>석 달 동안 오뒷세이아를 함께 읽어 주셔서 고마워요.${NEXT_PLACE?`<br>다음 라이브러리는 <b>${esc(NEXT_PLACE)}</b>이에요.`:''}</p>${next}</div></div>`)}
 /* ===== 기록 이어가기: kept in this browser only (no account) ===== */
 const p2=n=>String(n).padStart(2,'0');
 const dayKey=t=>{const d=kst(t);return `${d.getUTCFullYear()}-${p2(d.getUTCMonth()+1)}-${p2(d.getUTCDate())}`};
@@ -2558,7 +2558,7 @@ $('gbForm').onsubmit=async e=>{e.preventDefault();if(gbBusy)return;
   cvs.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>8||performance.now()-down.t>500){down=null;return}down=null;
     const r=cvs.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(ndc,cam);
     if(ray.intersectObject(barArt.group,true).length){say('열세 주의 빛<small>김승환 「시간을 지나, 남겨진 것들 The Timeless Rawness」(APART)에서 영감을 받아 이 라이브러리를 위해 새로 만든 작품이에요. 원 열세 개가 읽기 13주예요. 진도표에서 그 주를 체크할수록 원에 빛이 차고, 이번 주 원은 은은하게 숨 쉬어요.</small>',9000);return}
-    if(libCat.hit(ray)){say('라이브러리 고양이예요<small>이름은 모닝레시피 멤버들과 함께 지어 줄 거예요 · 졸리면 데이베드에서도 자요</small>',5000);return}
+    if(libCat.hit(ray)){say('라이브러리 고양이예요<small>이름은 모닝레시피클럽 멤버들과 함께 지어 줄 거예요 · 졸리면 데이베드에서도 자요</small>',5000);return}
     if(ray.intersectObject(knotTree.board,false).length){signTip();return}
     {const pg=paintings.hit(ray);if(pg||ray.intersectObject(odyBook.mesh,false).length){say(pg?`${esc(pg.label)} · ${pg.lit>=1?'함께 다 읽어 그림이 다 밝아졌어요':`함께 읽은 만큼 ${Math.round(pg.lit*100)}% 밝아졌어요`}<small>진도표에서 체크하면 그림에 빛이 번져요</small><button class="btn main tip-go" id="tipProg" type="button">진도표 열기</button>`:`천병희 역 『오뒷세이아』<small>어디까지 읽었는지 진도표에서 체크해요</small><button class="btn main tip-go" id="tipProg" type="button">진도표 열기</button>`,8000);
       const b=$('tipProg');if(b)b.onclick=()=>{$('knotTip').hidden=true;$('progBtn').onclick()};return}}
@@ -2702,7 +2702,7 @@ async function takePhoto(){
     const t=sceneTime(),d=kst(t),date=`${d.getUTCFullYear()}.${String(d.getUTCMonth()+1).padStart(2,'0')}.${String(d.getUTCDate()).padStart(2,'0')}`;
     const lines=[];
     lines.push({txt:'BORIH · MORNING RECIPE',font:`500 ${26*u}px Poppins, Inter, sans-serif`,sp:.2,a:.85});
-    lines.push({txt:'모닝레시피 라이브러리',font:`400 ${60*u}px 'Noto Serif KR', serif`,sp:.04,a:1,gap:18*u});
+    lines.push({txt:'모닝레시피클럽 라이브러리',font:`400 ${60*u}px 'Noto Serif KR', serif`,sp:.04,a:1,gap:18*u});
     if(cur)lines.push({txt:cur,font:`400 ${36*u}px 'Noto Serif KR', serif`,sp:.06,a:.92,gap:16*u});
     if(visitTeas.length&&(visitTeas.length>1||!cur))lines.push({txt:'오늘의 잔 · '+visitTeas.join(' → '),font:`300 ${30*u}px 'Noto Serif KR', serif`,sp:.03,a:.85,gap:14*u});
     lines.push({txt:`${date} · 함께 읽은 페이지 ${prog.pages.toLocaleString('ko-KR')}쪽`,font:`400 ${26*u}px Inter, sans-serif`,sp:.06,a:.75,gap:18*u});
@@ -2743,7 +2743,7 @@ $('shotSave').onclick=()=>{if(!shotBlob)return;
   if(TOUCH)return;   // phones: long-press the photo; a download link would open the photo and leave the tea room
   const a=document.createElement('a');a.href=shotUrl;a.download=shotFile?shotFile.name:'borih-morning.jpg';document.body.appendChild(a);a.click();a.remove();setTimeout(closeShot,600)};
 // 친구에게 보내기: the photo together with the way in, so a friend can come and sit too
-$('shotSend').onclick=()=>{const url=location.origin+location.pathname,text='모닝레시피 라이브러리에서 바다 보며 한 잔 하고 오뒷세이아를 읽었어요. 같이 앉아요.';
+$('shotSend').onclick=()=>{const url=location.origin+location.pathname,text='모닝레시피클럽 라이브러리에서 바다 보며 한 잔 하고 오뒷세이아를 읽었어요. 같이 앉아요.';
   // when no send sheet can open here, say so plainly and hand over the address to copy
   const manual=why=>{$('shotHint').innerHTML=`${why}<br>사진을 길게 눌러 저장한 뒤, 아래 주소와 함께 보내 주세요.<br><b class="shot-url" id="shotUrl">${esc(url)}</b><br><button class="btn" id="shotCopy" type="button">주소 복사</button>`;
     $('shotCopy').onclick=()=>{const ok=()=>{$('shotCopy').textContent='복사했어요'};
@@ -2754,7 +2754,7 @@ $('shotSend').onclick=()=>{const url=location.origin+location.pathname,text='모
     if(shotFile&&navigator.canShare&&navigator.canShare({files:[shotFile]})){navigator.share({files:[shotFile],text:text+'\n'+url}).then(sent,e=>{
       // some apps refuse a photo with words: try the photo alone once, the address is already in the photo's text box
       if(e&&e.name==='AbortError'){closeShot();return}failed(e)});return}
-    if(navigator.share){navigator.share({title:'모닝레시피 라이브러리',text,url}).then(sent,failed);return}
+    if(navigator.share){navigator.share({title:'모닝레시피클럽 라이브러리',text,url}).then(sent,failed);return}
   }catch(e){}
   manual(IN_APP||TOUCH?'이 화면에서는 보내기 창을 열 수 없어요. 사파리·크롬에서 열면 사진과 함께 바로 보낼 수 있어요.':'PC에서는 보내기 창이 없어요.')};
 
@@ -2765,10 +2765,10 @@ function tick(){
   const ss=sunset(b),lss=Math.round((ss-t)/60e3);
   const note=left>0&&left<180?` · 해 뜨기까지 ${left}분`:left<=0&&left>-40?' · 해가 떴어요':lss>0&&lss<120?` · 해 지기까지 ${lss}분`:lss<=0&&lss>-40?' · 해가 졌어요':'';
   $('sr').innerHTML=`서울 일출 <b>${hm(sr)}</b> · 일몰 <b>${hm(ss)}</b>${note}`;
-  // 모닝레시피 라이브러리: open any time until the last meeting (12월 6일)
+  // 모닝레시피클럽 라이브러리: open any time until the last meeting (12월 6일)
   const daysLeft=Math.ceil((OPEN_END-now)/864e5);
   if(now>=OPEN_END)closeRoom();
-  $('status').innerHTML=now<OPEN_END?`<span class="dot on"></span><b>모닝레시피 라이브러리</b> · 12월 6일까지 열려 있어요${daysLeft<=3?` · ${daysLeft}일 남음`:''}`:`<span class="dot"></span>라이브러리는 닫혔어요 · 다음 시즌에 만나요`;
+  $('status').innerHTML=now<OPEN_END?`<span class="dot on"></span><b>모닝레시피클럽 라이브러리</b> · 12월 6일까지 열려 있어요${daysLeft<=3?` · ${daysLeft}일 남음`:''}`:`<span class="dot"></span>라이브러리는 닫혔어요 · 다음 시즌에 만나요`;
   if(me.mode==='walk')$('hint').textContent=inside(me.x,me.z)?(TOUCH?'빈 의자나 데이베드 앞에 서면 앉기 버튼이 나와요':'빈 자리 앞에 서서 Enter를 누르거나 앉기 버튼을 눌러요'):(TOUCH?'화면을 끌어 걸어보세요 · 출입문으로 들어가요':'마우스로 끌거나 방향키(WASD)로 걸어요 · 출입문으로 들어가요');
 }
 setInterval(tick,1000);tick();
@@ -2870,7 +2870,7 @@ let sbOne=null;function sbClient(){if(sbOne)return sbOne;if(!window.supabase)ret
   try{sbOne=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:10}}})}catch(e){sbOne=null}return sbOne}
 const SB_URL='https://tckghakjphopeqyuncyd.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRja2doYWtqcGhvcGVxeXVuY3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTA3OTUsImV4cCI6MjEwOTE4Njc5NX0.Fb9voUGZXIXlXY2Q8uTDxCNjwJmRpsNr9lh7CxqPSSo',ROOM_NAME='borih-morning-morningrecipe';
 const myKey=(()=>{let k=store.get('id');if(!k){k='v'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);store.set('id',k)}return k+'-'+Math.random().toString(36).slice(2,6)})();
-const APP_V='4';
+const APP_V='5';
 $('ver').textContent='v'+APP_V;
 function connectRoom(){
   // Presence only says who is here (tracked once per connection). Everything else rides broadcasts:
