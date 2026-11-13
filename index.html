@@ -229,6 +229,11 @@ body.cha .greets,body.cha .say,body.cha .mine,body.cha .labels,body.cha .side,bo
 .gb-list .w{font-family:var(--f-ui);font-size:11.5px;color:var(--ink-mid);margin-top:2px}
 .gb-empty{font-size:13px;color:var(--ink-mid);text-align:center;padding:16px 0}
 .gb-link{background:none;border:0;color:var(--ink-mid);font-family:var(--f-ui);font-size:12px;text-decoration:underline;cursor:pointer;align-self:center;padding:4px}
+.crown-card{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 92px);transform:translateX(-50%);z-index:41;width:min(86vw,360px);background:var(--paper);color:var(--text);border-radius:14px;padding:12px 16px 13px;font-size:13.5px;line-height:1.62;box-shadow:0 8px 30px rgba(0,0,0,.35);cursor:pointer;word-break:keep-all;overflow-wrap:anywhere;animation:crownIn .5s ease-out}
+.crown-card b{display:block;font-size:14.5px;margin-bottom:3px;color:#7a5a12}
+.crown-card small{display:block;font-family:var(--f-ui);font-size:11.5px;color:#6b6358;margin-top:6px}
+.crown-card.out{opacity:0;transform:translate(-50%,-8px);transition:opacity .6s,transform .6s}
+@keyframes crownIn{from{opacity:0;transform:translate(-50%,-10px)}to{opacity:1;transform:translate(-50%,0)}}
 .knot-tip{position:fixed;left:50%;top:max(200px,calc(env(safe-area-inset-top) + 190px));transform:translateX(-50%);z-index:40;max-width:min(86vw,420px);background:var(--paper);color:var(--text);border-radius:14px;padding:12px 16px;font-size:14px;line-height:1.6;box-shadow:0 8px 30px rgba(0,0,0,.35);pointer-events:auto;cursor:pointer;word-break:keep-all;overflow-wrap:anywhere}
 .treego{position:fixed;left:0;top:0;transform:translate(-50%,-50%);white-space:nowrap;z-index:35;display:flex;align-items:center;gap:8px;font-family:var(--f-ko);font-size:14px;color:var(--ink);background:rgba(22,24,26,.18);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);border:1px solid rgba(243,239,230,.28);will-change:left,top;border-radius:999px;padding:9px 15px 9px 17px;cursor:pointer;text-shadow:0 1px 6px rgba(0,0,0,.35)}
 .treego .tg-a{display:inline-block;transform-origin:50% 55%}
@@ -316,6 +321,7 @@ body.cha .greets,body.cha .say,body.cha .mine,body.cha .labels,body.cha .side,bo
   </div>
   <div class="flash" id="flash"></div>
   <div class="knot-tip" id="knotTip" hidden></div>
+  <div class="crown-card" id="crownCard" hidden></div>
   <div class="dol-tip" id="dolTip" hidden>저 멀리 큰돌고래가 뛰었어요 🐬</div>
   <button class="treego" id="treeGo" type="button" hidden><span class="tg-l">이타케 올리브 보러 가기</span><span class="tg-a" aria-hidden="true">→</span></button>
   <div class="gb" id="rk" hidden><div class="gb-card" role="dialog" aria-label="함께 읽은 페이지">
@@ -1722,7 +1728,7 @@ function makeChar(color){
     const h=new THREE.Mesh(new THREE.SphereGeometry(.048,12,10),skinM);h.scale.set(.85,1,1.1);torso.add(h);
     return {sl,cuff,h,sh:new THREE.Vector3(s*.18,-.03,-.03),p:new THREE.Vector3()}});
   {const br=new THREE.Mesh(new THREE.SphereGeometry(.024,12,8),GOLD_M);br.scale.z=.55;br.position.set(.2,.035,-.09);torso.add(br)}   // gold fibula pinning the himation
-  const crownG=new THREE.Group();crownG.position.set(0,.3,0);crownG.rotation.x=-.2;torso.add(crownG);
+  const crownG=new THREE.Group();crownG.position.set(0,.385,.02);crownG.rotation.set(-.3,0,.07);torso.add(crownG);   // perched on the crown of the head, tipped back a little, not a headband
   const hand=makeBodeumi('#c98a72');hand.visible=false;torso.add(hand);
   const c={g,torso,crownG,crownSt:-2,crownSeed:hashStr(color),sproutG:sprout,head:headM,hand,hold:0,arms,sprout:{stem,leaves,ear,leafM,grains,earM,flower,petals,flowerM,heartM,stage:-1,n:-1},feet,sitBody,standBody,bob:Math.random()*6,walkPh:0,speed:0,pose:null};
   setPose(c,'stand');return c;
@@ -1832,7 +1838,7 @@ function dressGreek(sitBody,standBody,himaM){
 const CROWN_AT=[1,3,6,10,20];
 const ANEMONE_COLS=['#b5213a','#6f3b8f','#c2366f','#f1ece8','#4b3a8c'];
 const crownStage=sips=>{const cups=Math.floor((+sips||0)/SIPS_PER_CUP);let s=-1;CROWN_AT.forEach((a,k)=>{if(cups>=a)s=k});return s};
-const CR=.248;   // the ring sits round the head just above the brow
+const CR=.2;   // the ring sits round the head just above the brow
 function crownFlower(petals,len,wid,col,heart,heartR){const f=new THREE.Group(),pm=mat(col,{roughness:.6,side:THREE.DoubleSide});
   for(let k=0;k<petals;k++){const h=new THREE.Group();h.rotation.z=k*Math.PI*2/petals;f.add(h);
     const p=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),pm);p.scale.set(wid,len,.004);p.position.y=len*.95;h.add(p)}
@@ -1844,6 +1850,21 @@ function laurel(g,leafM,count){
     const th=Math.PI/2-a+(side<0?Math.PI:0);   // the leaf's length runs along the ring, tip toward the back
     [-1,1].forEach(out=>{const l=new THREE.Mesh(geo,leafM);l.scale.set(.022,.006,.058-.014*(k/count));l.rotation.order='YXZ';l.rotation.set(-.55*out,th,0);
       l.position.set(x,.016*out,z);g.add(l)})}})}
+
+// a small card the moment your crown changes: what it is and how it belongs to Greece
+const CROWN_STORY=[
+  ['첫 화관 · 크라운데이지','봄이면 그리스의 들판과 유적지를 하얗고 노랗게 덮는 꽃이에요. 학명 <i>coronaria</i>는 \'화관을 엮는\'이라는 뜻이에요.'],
+  ['바람꽃 아네모네','이름은 그리스어 아네모스(바람)에서 왔어요. 시인 비온은 아도니스를 잃은 아프로디테의 눈물이 이 꽃으로 피어났다고 노래했어요.'],
+  ['크레타의 바위장미 · 시스투스','크레타 섬 언덕에 피는 꽃이에요. 잎에서 나는 향기로운 수지 \'라다눔\'은 고대부터 향료와 약으로 쓰였어요.'],
+  ['아폴론의 월계관','아폴론을 피해 달아나던 다프네는 월계수가 되었고(그리스어로 월계수가 \'다프네\'), 아폴론은 그 잎으로 관을 썼어요. 델포이 퓌티아 경기의 우승자도 월계관을 받았어요.'],
+  ['금 월계관과 보리 이삭','고대 그리스에서는 얇게 두드린 금잎으로 관을 만들어 신께 바치거나 큰 영예의 표시로 삼았어요. 꽂힌 보리 이삭은 데메테르의 곡식이자, 『오뒷세이아』 10권에서 키르케가 보릿가루를 섞어 퀴케온을 만들던 그 보리예요.']];
+let crownCardT=null;
+function showCrownCard(st){const el=document.getElementById('crownCard');if(!el||!CROWN_STORY[st])return;const [t,s]=CROWN_STORY[st];
+  const next=CROWN_AT[st+1],nextName=['크라운데이지','아네모네','시스투스','초록 월계관','금 월계관'][st+1];
+  el.innerHTML=`<b>${t}</b>${s}<small>${CROWN_AT[st]}잔째 · ${next?`${next}잔이 되면 ${nextName}`:'마지막 관이에요'} · 누르면 닫혀요</small>`;
+  el.classList.remove('out');el.hidden=false;el.style.animation='none';void el.offsetWidth;el.style.animation='';
+  clearTimeout(crownCardT);crownCardT=setTimeout(()=>{el.classList.add('out');setTimeout(()=>{el.hidden=true;el.classList.remove('out')},650)},11000);
+  el.onclick=()=>{clearTimeout(crownCardT);el.hidden=true}}
 function setCrown(c,sips){const st=crownStage(sips);if(c.crownSt===st)return;const grew=c.crownSt>-2&&st>c.crownSt;c.crownSt=st;
   const g=c.crownG;while(g.children.length){const o=g.children.pop();o.traverse(x=>{if(x.geometry)x.geometry.dispose()})}
   if(c.sproutG)c.sproutG.visible=st<0;   // the barley sprout until the first crown; it returns as a gold ear on the last one
@@ -1851,7 +1872,7 @@ function setCrown(c,sips){const st=crownStage(sips);if(c.crownSt===st)return;con
   if(st<=2){const vine=new THREE.Mesh(new THREE.TorusGeometry(CR,.009,6,48),mat('#5f7d45',{roughness:.8}));vine.rotation.x=Math.PI/2;g.add(vine);
     const lm=mat('#6f9150',{roughness:.7,side:THREE.DoubleSide}),lg=new THREE.SphereGeometry(1,6,5);
     for(let k=0;k<14;k++){const a=k/14*Math.PI*2,l=new THREE.Mesh(lg,lm);l.scale.set(.016,.005,.036);l.position.set(Math.sin(a)*CR,.004,-Math.cos(a)*CR);l.rotation.y=-a+.9;g.add(l)}
-    const put=(f,a,y)=>{f.position.set(Math.sin(a)*(CR+.012),y,-Math.cos(a)*(CR+.012));f.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(Math.sin(a),.8,-Math.cos(a)).normalize());g.add(f)};
+    const put=(f,a,y)=>{f.position.set(Math.sin(a)*(CR+.012),y,-Math.cos(a)*(CR+.012));f.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(Math.sin(a),1.3,-Math.cos(a)).normalize());g.add(f)};
     const daisy=()=>crownFlower(12,.028,.008,'#fbfaf3','#e8b923',.017);
     const anem=k=>crownFlower(6,.031,.019,ANEMONE_COLS[(c.crownSeed+k)%ANEMONE_COLS.length],'#1f1b24',.014);
     const cist=()=>crownFlower(5,.03,.025,'#f0b6c8','#f2c94c',.013);
@@ -1864,7 +1885,7 @@ function setCrown(c,sips){const st=crownStage(sips);if(c.crownSt===st)return;con
       for(let k=0;k<9;k++){const gr=new THREE.Mesh(gg,GOLD_M);gr.scale.set(.01,.018,.01);gr.position.set(k%2?.01:-.01,k*.017,0);ear.add(gr);
         const aw=new THREE.Mesh(ag,GOLD_M);aw.position.set(k%2?.022:-.022,k*.017+.03,0);aw.rotation.z=k%2?-.45:.45;ear.add(aw)}
       const a=.55;ear.position.set(Math.sin(a)*(CR+.01),.0,-Math.cos(a)*(CR+.01));ear.rotation.set(-.35,0,-.55);g.add(ear)}}
-  if(grew){g.userData.popAt=performance.now()}}
+  if(grew){g.userData.popAt=performance.now();if(typeof me!=='undefined'&&me.char===c)showCrownCard(st)}}
 function setPose(c,p){if(c.pose===p)return;c.pose=p;c.sitBody.visible=p==='sit';c.standBody.visible=p!=='sit'}
 const tmpV=new THREE.Vector3(),tmpD=new THREE.Vector3(),UPV=new THREE.Vector3(0,1,0);
 const pkHand=new THREE.Vector3();
@@ -2554,7 +2575,7 @@ $('mrClose').onclick=()=>{$('mr').hidden=true};
 $('mr').addEventListener('click',e=>{if(e.target.id==='mr')$('mr').hidden=true});
 $('mrHow').onclick=()=>{$('mr').hidden=true;showKeep()};
 document.body.appendChild($('mr'));
-document.body.appendChild($('gb'));document.body.appendChild($('knotTip'));document.body.appendChild($('treeGo'));
+document.body.appendChild($('gb'));document.body.appendChild($('knotTip'));document.body.appendChild($('crownCard'));document.body.appendChild($('treeGo'));
 // 다정 나무 보러 가기: walking in the yard, a button points the way; tapping it walks you to the sign and reads it out
 let glide=null;const signPos=new THREE.Vector3(),signN=new THREE.Vector3(),qW=new THREE.Quaternion(),projV=new THREE.Vector3();
 // the way to 다정 나무, drawn on the ground: a row of soft golden chevrons running from just ahead of you to the sign, a gentle pulse flowing along them
@@ -2847,7 +2868,7 @@ let sbOne=null;function sbClient(){if(sbOne)return sbOne;if(!window.supabase)ret
   try{sbOne=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:10}}})}catch(e){sbOne=null}return sbOne}
 const SB_URL='https://tckghakjphopeqyuncyd.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRja2doYWtqcGhvcGVxeXVuY3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTA3OTUsImV4cCI6MjEwOTE4Njc5NX0.Fb9voUGZXIXlXY2Q8uTDxCNjwJmRpsNr9lh7CxqPSSo',ROOM_NAME='borih-morning-morningrecipe';
 const myKey=(()=>{let k=store.get('id');if(!k){k='v'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);store.set('id',k)}return k+'-'+Math.random().toString(36).slice(2,6)})();
-const APP_V='2';
+const APP_V='3';
 $('ver').textContent='v'+APP_V;
 function connectRoom(){
   // Presence only says who is here (tracked once per connection). Everything else rides broadcasts:
