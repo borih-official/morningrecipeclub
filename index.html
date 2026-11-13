@@ -1865,10 +1865,20 @@ function showCrownCard(st){const el=document.getElementById('crownCard');if(!el|
   el.classList.remove('out');el.hidden=false;el.style.animation='none';void el.offsetWidth;el.style.animation='';
   clearTimeout(crownCardT);crownCardT=setTimeout(()=>{el.classList.add('out');setTimeout(()=>{el.hidden=true;el.classList.remove('out')},650)},11000);
   el.onclick=()=>{clearTimeout(crownCardT);el.hidden=true}}
-function setCrown(c,sips){const st=crownStage(sips);if(c.crownSt===st)return;const grew=c.crownSt>-2&&st>c.crownSt;c.crownSt=st;
+function growShoots(c,sips){const n=Math.min(SIPS_PER_CUP,Math.max(0,+sips||0)),h=.55+.45*n/SIPS_PER_CUP;c.shoots.forEach((s,k)=>{s.scale.set(1,h*(.85+.3*((k*7)%5)/4),1)})}
+function setCrown(c,sips){const st=crownStage(sips);
+  if(st<0&&c.crownSt===st&&c.shoots){growShoots(c,sips);return}
+  if(c.crownSt===st)return;const grew=c.crownSt>-2&&st>c.crownSt;c.crownSt=st;
   const g=c.crownG;while(g.children.length){const o=g.children.pop();o.traverse(x=>{if(x.geometry)x.geometry.dispose()})}
-  if(c.sproutG)c.sproutG.visible=st<0;   // the barley sprout until the first crown; it returns as a gold ear on the last one
-  if(st<0)return;
+  if(c.sproutG)c.sproutG.visible=false;   // the single barley sprout gives way to a ring of sprouts; it returns as a gold ear on the last crown
+  c.shoots=null;
+  if(st<0){   // 새싹관: a thin green ring with young barley shoots, a pair of blades each, growing a little with every sip of the first cup
+    const vine=new THREE.Mesh(new THREE.TorusGeometry(CR,.006,6,48),mat('#6f8f4f',{roughness:.8}));vine.rotation.x=Math.PI/2;g.add(vine);
+    const sm=mat('#8fb56a',{roughness:.7,side:THREE.DoubleSide}),bg=new THREE.SphereGeometry(1,6,5),shoots=[];
+    for(let k=0;k<14;k++){const a=k/14*Math.PI*2+.11,s=new THREE.Group();s.position.set(Math.sin(a)*CR,0,-Math.cos(a)*CR);s.rotation.y=-a;
+      [-1,1].forEach(o=>{const b=new THREE.Mesh(bg,sm);b.scale.set(.009,.046,.004);b.position.set(o*.008,.04,0);b.rotation.z=-o*(.28+.1*(k%3));s.add(b)});
+      g.add(s);shoots.push(s)}
+    c.shoots=shoots;growShoots(c,sips);return}
   if(st<=2){const vine=new THREE.Mesh(new THREE.TorusGeometry(CR,.009,6,48),mat('#5f7d45',{roughness:.8}));vine.rotation.x=Math.PI/2;g.add(vine);
     const lm=mat('#6f9150',{roughness:.7,side:THREE.DoubleSide}),lg=new THREE.SphereGeometry(1,6,5);
     for(let k=0;k<14;k++){const a=k/14*Math.PI*2,l=new THREE.Mesh(lg,lm);l.scale.set(.016,.005,.036);l.position.set(Math.sin(a)*CR,.004,-Math.cos(a)*CR);l.rotation.y=-a+.9;g.add(l)}
@@ -2868,7 +2878,7 @@ let sbOne=null;function sbClient(){if(sbOne)return sbOne;if(!window.supabase)ret
   try{sbOne=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:10}}})}catch(e){sbOne=null}return sbOne}
 const SB_URL='https://tckghakjphopeqyuncyd.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRja2doYWtqcGhvcGVxeXVuY3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTA3OTUsImV4cCI6MjEwOTE4Njc5NX0.Fb9voUGZXIXlXY2Q8uTDxCNjwJmRpsNr9lh7CxqPSSo',ROOM_NAME='borih-morning-morningrecipe';
 const myKey=(()=>{let k=store.get('id');if(!k){k='v'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);store.set('id',k)}return k+'-'+Math.random().toString(36).slice(2,6)})();
-const APP_V='6';
+const APP_V='7';
 $('ver').textContent='v'+APP_V;
 function connectRoom(){
   // Presence only says who is here (tracked once per connection). Everything else rides broadcasts:
